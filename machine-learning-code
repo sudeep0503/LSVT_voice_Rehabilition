@@ -1,0 +1,84 @@
+#**Step 1: Dataset import**
+
+import pandas as pd
+data = pd.read_csv('/content/LSVT_voice_rehabilitation.csv')
+data.head()
+
+print("Number of Male's data: ",(data['Gender, 0->Male, 1->Female']==0).sum())
+print("Number of Male's data: ",(data['Gender, 0->Male, 1->Female']==1).sum())
+
+
+
+#**Data Preprocessing**
+
+print(data.info())
+print(data.describe())
+
+print(data.isna().sum())
+print("\n")
+
+print("Total Acceptable(1) : ",(data['State']==1).sum())
+print("Total Unacceptable(2) : ",(data['State']==2).sum())
+
+
+#**Step 3: Data Spliting and Feature Scaling**
+
+from sklearn.model_selection import train_test_split
+
+x_train , x_test , y_train , y_test = train_test_split(data.drop(['State'],axis=1) , data['State'] , test_size=0.3 , random_state=0)
+
+**Using StandardScaler()**
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
+sc = StandardScaler()
+
+sc.fit(x_train)
+sc.fit(x_test)
+
+x_train_std = sc.transform(x_train)
+x_test_std = sc.transform(x_test)
+
+
+
+#**Load Classifier**
+
+**We will use Support Vector Machine, as it gives the best accuracy.**
+
+from sklearn.svm import SVC
+
+sv = SVC(C=1 , kernel='linear')
+sv.fit(x_train_std , y_train)
+
+pred_train = sv.predict(x_train_std)
+pred_test = sv.predict(x_test_std)
+
+
+
+from sklearn.metrics import accuracy_score
+
+train_acc = accuracy_score(pred_train,y_train)
+print("Training Accuracy: ",train_acc*100,"%")
+test_acc = accuracy_score(pred_test,y_test)
+print("Testing Accuracy: ",test_acc*100,"%")
+
+
+
+#**Performance Measure**
+
+from sklearn.metrics import classification_report
+
+cr = classification_report(y_test , pred_test)
+print(cr)
+
+from sklearn.metrics import plot_confusion_matrix,confusion_matrix
+
+cm = confusion_matrix(y_test , pred_test)
+
+print(cm)
+
+plot_confusion_matrix(sv , x_test_std , y_test)
+
+**Seaborn and Graphical Representation**
+
+import seaborn as sns
+sns.countplot(x='State',data=data)
